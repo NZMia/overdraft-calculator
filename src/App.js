@@ -3,14 +3,18 @@ import { useRef } from "react";
 import { useState } from "react";
 
 import { useDebounce } from "./hooks/useDebounce";
-import Input from "./components/Input";
 
-import { inputInfo } from './utils/constant';
+import Input from "./components/Input";
+import Select from "./components/Select";
+
+import { inputInfo, interestFree } from './utils/constant';
+import { getDaysYear } from "./utils/getDaysYear";
+import { isNumber, removeSpace } from "./utils/validation";
 
 const App = () => {
   const limitRef = useRef();
 
-  const [value, setValue] = useState(0)
+  const [inteFree, setInteFree] = useState(0)
   const [limit, setLimit] = useState(0)
   const [rate, setRate] = useState(0)
   const [days, setDays] = useState(0)
@@ -20,7 +24,6 @@ const App = () => {
 
   const [errorMsg, setErrorMsg] = useState('')
 
-  const debouncedValue = useDebounce(value, 750);
 
   // Set focus when component loads
   useEffect(() => {
@@ -32,27 +35,33 @@ const App = () => {
     setErrorMsg('');
   }, [limit, rate, days, accountBalance, totalSpending])
   
-  const handleInputOnChange = async(e) => {
+  // Set Interest Free
+  const handleSelected = (e) => {
     e.preventDefault();
+    setInteFree(e.target.name)
+  }
+
+  const handleInputOnChange = (e) => {
+    e.preventDefault();
+    const currentValue = removeSpace(e.target.value);
+    
+    console.info('currentValue', currentValue);
+    
+    if(isNumber(currentValue)) setErrorMsg('Please input number');
 
     switch(e.target.name) {
       case 'Arranged overdraft limit':
-        setLimit(e.target.value)
+        setLimit(currentValue)
       case 'Overdraft interest rate':
-        setRate(e.target.value)
+        setRate(currentValue)
       case 'Number of days overdrawn':
-        setDays(e.target.value)
+        setDays(currentValue)
       case 'Account balance':
-        setAccountBalance(e.target.value)
+        setAccountBalance(currentValue)
       case 'Total Spending':
-        setTotalSpending(e.target.value)
+        setTotalSpending(currentValue)
       break
     }
-  }
-  const getDaysYear = () => {
-    const now = new Date();
-    const currentYear = now.getFullYear()
-    return (currentYear%4===0&&currentYear%100!==0||currentYear%100===0&&currentYear%400===0) ? 366 : 365
   }
 
   // Set onClick function 
@@ -70,9 +79,12 @@ const App = () => {
 
     const amountOverdrawn = totalSpending - accountBalance;
 
-    const result = (amountOverdrawn / days) * (rate/100 / getDaysYear())
+    console.log('inteFree', inteFree);
+    
+    const result = amountOverdrawn <= inteFree ? "Remember pay it" : (amountOverdrawn / days) * (rate/100 / getDaysYear())
     console.log('result',result)
   }
+
   return (
     <div className="page">
       <div className="grid place-items-center mx-2 my-20 sm:my-auto">
@@ -84,6 +96,12 @@ const App = () => {
             </div>
             <form className="space-y-5">
                 {
+                  interestFree.map((item) => {
+                    const { key, value } = item
+                    return (<Select key={key} type={key} currentValue={value} handleOnChange={handleSelected}/>)
+                  })
+                }
+                {
                   inputInfo.map((item) => {
                     const { name, key, value } = item
                     return (
@@ -93,7 +111,7 @@ const App = () => {
                         inputValue={value}
                         currentRef={key === "limit" ? limitRef : null}
                         handleOnChange={handleInputOnChange} 
-                        />
+                      />
                     )
                   })
                 }

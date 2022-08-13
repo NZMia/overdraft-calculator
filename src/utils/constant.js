@@ -30,3 +30,14 @@ export const inputInfo = [
     value: 0
   },
 ]
+
+export const interestFree = [
+  {
+    key: "student",
+    value: 0
+  }, 
+  {
+    key: "primey",
+    value: 500
+  }
+]
