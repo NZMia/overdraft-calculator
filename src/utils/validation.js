@@ -20,6 +20,8 @@ export const isNumberInTheRange = (value) => {
   return (/^[1-9][0-9]?$|^100$/.test(value))
 }
 
-export const isNegativeNumber = (value) => {
+export const isPositiveNumber = (value) => {
+  console.log(value)
+  console.log((/^-?\d*\.?\d+$/.test(value)))
   return (/^-?\d*\.?\d+$/.test(value))
 }

@@ -1,8 +1,7 @@
 import { useEffect } from "react";
 import { useRef } from "react";
 import { useState } from "react";
-
-import { useDebounce } from "./hooks/useDebounce";
+import { debounce } from "lodash";
 
 import Input from "./components/Input";
 import Select from "./components/Select";
@@ -10,6 +9,9 @@ import Select from "./components/Select";
 import { inputInfo, interestFree } from './utils/constant';
 import { getDaysYear } from "./utils/getDaysYear";
 import { isNumber, removeSpace, isEmptyString, isNumberInTheRange, isNegativeNumber } from "./utils/validation";
+
+import formValidation from "./utils/formValidation";
+
 
 const App = () => {
   const limitRef = useRef();
@@ -22,40 +24,34 @@ const App = () => {
   const [accountBalance, setAccountBalance] = useState(0)
   const [totalSpending, setTotalSpending] = useState(0)
 
-  const [errorMsg, setErrorMsg] = useState('')
-
+  const [errorMsg, setErrorMsg] = useState({})
 
   // Set focus when component loads
   useEffect(() => {
     limitRef.current.focus();
   }, [])
 
-  // Set or reset errorMsg back to '' 
-  useEffect(() => {
-    setErrorMsg('');
-  }, [limit, rate, days, accountBalance, totalSpending])
   
   // Set Interest Free
   const handleSelected = (e) => {
-    e.preventDefault();
     setInteFree(e.target.name)
   }
 
-  const handleInputOnChange = (e) => {
-    e.preventDefault();
+  const handleInputOnChanges = (e) => { 
     
     // Remove all spaces from input value
-    const currentValue = removeSpace(e.target.value);
-    
-    // Validation : General Test
-    if(!isNumber(currentValue)) return setErrorMsg('Please input number');
-    if(!isNumberInTheRange(currentValue)) return setErrorMsg('Please input number between 0 ~ 100');
-    if(isNegativeNumber(currentValue)) return setErrorMsg('Please input number bigger than 0');
+    const currentValue = removeSpace(e.target.value)
+    const type = e.target.name
 
-    // TODO: 
-    // Validation : limition comes from client
+    // Form Validation
+    const errorObject = {};
+    errorObject[type] = formValidation(currentValue)
+    setErrorMsg({
+      ...errorMsg,
+      ...errorObject
+    })
 
-    switch(e.target.name) {
+    switch(type) {
       case 'Arranged overdraft limit':
         setLimit(currentValue)
       case 'Overdraft interest rate':
@@ -69,7 +65,9 @@ const App = () => {
       break
     }
   }
-  console.info('errorMsg', errorMsg);
+
+  const debouncedResult = debounce(handleInputOnChanges, 300)
+
   // Set onClick function 
   const handleOnCalculating = async (e) => {
     e.preventDefault();
@@ -84,8 +82,6 @@ const App = () => {
     // P = number of periods per year
 
     const amountOverdrawn = totalSpending - accountBalance;
-
-    console.log('inteFree', inteFree);
     
     const result = amountOverdrawn <= inteFree ? "Remember pay it" : (amountOverdrawn / days) * (rate/100 / getDaysYear())
     console.log('result',result)
@@ -114,9 +110,10 @@ const App = () => {
                      <Input 
                         key={key}
                         title={name}
-                        inputValue={value}
+                        limit={value}
+                        errorMsg={errorMsg}
                         currentRef={key === "limit" ? limitRef : null}
-                        handleOnChange={handleInputOnChange} 
+                        handleOnChange={debouncedResult} 
                       />
                     )
                   })
