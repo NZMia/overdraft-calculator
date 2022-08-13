@@ -9,7 +9,7 @@ import Select from "./components/Select";
 
 import { inputInfo, interestFree } from './utils/constant';
 import { getDaysYear } from "./utils/getDaysYear";
-import { isNumber, removeSpace } from "./utils/validation";
+import { isNumber, removeSpace, isEmptyString, isNumberInTheRange, isNegativeNumber } from "./utils/validation";
 
 const App = () => {
   const limitRef = useRef();
@@ -43,11 +43,17 @@ const App = () => {
 
   const handleInputOnChange = (e) => {
     e.preventDefault();
+    
+    // Remove all spaces from input value
     const currentValue = removeSpace(e.target.value);
     
-    console.info('currentValue', currentValue);
-    
-    if(isNumber(currentValue)) setErrorMsg('Please input number');
+    // Validation : General Test
+    if(!isNumber(currentValue)) return setErrorMsg('Please input number');
+    if(!isNumberInTheRange(currentValue)) return setErrorMsg('Please input number between 0 ~ 100');
+    if(isNegativeNumber(currentValue)) return setErrorMsg('Please input number bigger than 0');
+
+    // TODO: 
+    // Validation : limition comes from client
 
     switch(e.target.name) {
       case 'Arranged overdraft limit':
@@ -63,7 +69,7 @@ const App = () => {
       break
     }
   }
-
+  console.info('errorMsg', errorMsg);
   // Set onClick function 
   const handleOnCalculating = async (e) => {
     e.preventDefault();
@@ -115,7 +121,7 @@ const App = () => {
                     )
                   })
                 }
-                <button type="submit" className="btn" onClick={handleOnCalculating}>
+                <button type="submit" className={"btn" + " " + `${isEmptyString(errorMsg) ? "disabled" : ""}`} onClick={handleOnCalculating}>
                     Calculate
                 </button>
             </form>
