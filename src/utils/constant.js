@@ -3,31 +3,37 @@ export const inputInfo = [
   {
     key: "limit",
     name: "Arranged overdraft limit",
-    value: 3000
+    min: 1,
+    max: 5000,
+    // value: 5000
   },
 
   {
     key: "rate",
     name: "Overdraft interest rate",
-    value: "5%"
+    min: 1,
+    max: 100,
+    // value: "5%"
   },
 
   {
     key: "days",
     name: "Number of days overdrawn",
-    value: 31
+    min: 1,
+    max: 31,
+    // value: 31,
   },
 
   {
     key: "balance",
     name: "Account balance",
-    value: 0
+    min: 0
   },
 
   {
     key: "spending",
     name: "Total Spending",
-    value: 0
+    min: 0
   },
 ]
 

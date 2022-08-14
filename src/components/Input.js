@@ -1,8 +1,9 @@
 import React from "react";
+import { isEmpty } from "lodash";
 
-const Input = ({ title, currentRef=null, handleOnChange, limit, errorMsg}) => {
+const Input = ({ title, currentRef=null, handleOnChange, min, max, errorMsg}) => {
   
-  const hasError = errorMsg != null;
+  const currentErrormsg = errorMsg.find(msg => msg.title === title)
 
   return (
     <div className="relative w-full">
@@ -10,19 +11,18 @@ const Input = ({ title, currentRef=null, handleOnChange, limit, errorMsg}) => {
           {title}
         </p>
         {
-          limit > 0 && <span className="text-sm text-slate-700">Enter a value between 0 and {limit}</span>
+          !!min && !!max && <span className="text-sm text-slate-700">Enter a value between {min} and {max}</span>
         }
         <input 
           className="input" 
           ref={currentRef} 
           name={title}
           onChange={handleOnChange}
-         />
-        <p className={"mt-2 peer-invalid:visible text-pink-600 text-sm" + `${hasError ? "visible" : "invisible"}`}>
+          required
+           />
           {
-            errorMsg[title]
+            !isEmpty(currentErrormsg) &&  <p className="mt-2 peer-invalid:visible text-pink-600 text-sm">{currentErrormsg.msg}</p>
           }
-        </p>
     </div>
   )
 }

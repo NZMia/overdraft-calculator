@@ -1,4 +1,3 @@
-
 export const isNumber = (value) => {
   return (/^[\d\s]*$/.test(value))
 }
@@ -16,12 +15,18 @@ export const isEmptyString = (value) => {
 
 // Number should between 0 ~ 100
 // eg: Rate
-export const isNumberInTheRange = (value) => {
+export const isNumberLessThan10000 = (value) => {
+  return (/^(?:[1-9]|\d{2,3}|[1-4]\d{3}|5000)$/.test(value))
+}
+
+export const isNumberLessThan100 = (value) => {
   return (/^[1-9][0-9]?$|^100$/.test(value))
 }
 
-export const isPositiveNumber = (value) => {
-  console.log(value)
-  console.log((/^-?\d*\.?\d+$/.test(value)))
-  return (/^-?\d*\.?\d+$/.test(value))
+export const daysCheck = (value) => {
+  return (/^(0?[1-9]|[12][0-9]|3[01])$/.test(value))
+}
+
+export const isOverrun = (value, allowedValue) => {
+  return value > allowedValue ? true : false
 }
