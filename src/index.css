@@ -16,11 +16,13 @@
 
 @layer components {
   .input {
-    @apply before:content-['$'] before:ml-0.5 before:text-red-500 
-    block w-full py-3 px-3 mt-2 text-gray-800 appearance-none border-2 border-gray-100  rounded-md
-    focus:text-gray-500 focus:outline-none focus:border-gray-200
+    @apply rounded-none bg-gray-50 border text-gray-900 
+    focus:ring-blue-500 focus:border-blue-500 block flex-1 min-w-0 w-full text-sm border-gray-300 p-2.5  
     focus:invalid:border-pink-500 focus:invalid:ring-pink-500
-
+  }
+  .input__icon {
+    @apply inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 
+    border-gray-300 dark:text-gray-400 dark:border-gray-600
   }
   .btn {
     @apply w-full py-3 mt-10 bg-[#063970] rounded-md

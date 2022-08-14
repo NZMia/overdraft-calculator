@@ -1,9 +1,6 @@
 import { isNumber,isNumberLessThan10000, daysCheck, isNumberLessThan100, isOverrun } from "./validation";
-import { inputInfo } from "./constant";
 
-const getMax = inputInfo.find(info => info.name === "Arranged overdraft limit").max;
-
-const formValidation = (value, type=null, balance=null) => {
+const formValidation = (value, type=null, balance=null, limit=null) => {
 
   const currentType = type.toString().toLowerCase();
  
@@ -22,9 +19,8 @@ const formValidation = (value, type=null, balance=null) => {
   };
  
   if(currentType.includes('total spending')) {
-    const allowedOverdrawn = balance*1 + getMax;
-    console.log('we')
-    if(isOverrun(value, allowedOverdrawn)) return `Please input number less than ${allowedOverdrawn}`
+    const allowedOverdrawn = balance*1 + limit*1;
+    if(isOverrun(value, allowedOverdrawn)) return `Cannot spend over than  ${allowedOverdrawn}`
   }
 }
 

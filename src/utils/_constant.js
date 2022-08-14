@@ -1,11 +1,9 @@
 export const inputInfo = [
-
   {
     key: "limit",
     name: "Arranged overdraft limit",
     min: 1,
     max: 5000,
-    // value: 5000
   },
 
   {
@@ -13,7 +11,6 @@ export const inputInfo = [
     name: "Overdraft interest rate",
     min: 1,
     max: 100,
-    // value: "5%"
   },
 
   {
@@ -21,7 +18,6 @@ export const inputInfo = [
     name: "Number of days overdrawn",
     min: 1,
     max: 31,
-    // value: 31,
   },
 
   {
@@ -32,7 +28,7 @@ export const inputInfo = [
 
   {
     key: "spending",
-    name: "Total Spending",
+    name: "Total spending",
     min: 0
   },
 ]
@@ -47,3 +43,18 @@ export const interestFree = [
     value: 500
   }
 ]
+
+export const icon = {
+  dollar: {
+    sign: "$",
+    position: "left"
+  },
+  percentage: {
+    sign: "%",
+    position: "right"
+  },
+  text: {
+    sign: "days",
+    position: "right"
+  }
+}

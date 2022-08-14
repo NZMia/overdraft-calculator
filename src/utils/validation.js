@@ -13,8 +13,6 @@ export const isEmptyString = (value) => {
 	return false
 }
 
-// Number should between 0 ~ 100
-// eg: Rate
 export const isNumberLessThan10000 = (value) => {
   return (/^(?:[1-9]|\d{2,3}|[1-4]\d{3}|5000)$/.test(value))
 }

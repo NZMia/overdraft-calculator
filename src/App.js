@@ -1,12 +1,20 @@
 import { useEffect } from "react";
 import { useRef } from "react";
 import { useState } from "react";
-import { debounce, isEmpty, isUndefined } from "lodash";
+import { 
+  debounce, 
+  isEmpty, 
+  isUndefined
+} from "lodash";
 
 import Input from "./components/Input";
 import Select from "./components/Select";
 
-import { inputInfo, interestFree } from './utils/constant';
+import { 
+  inputInfo, 
+  icon, 
+  interestFree 
+} from './utils/_constant';
 import { getDaysYear } from "./utils/getDaysYear";
 import { removeSpace } from "./utils/validation";
 
@@ -16,7 +24,6 @@ const App = () => {
   const limitRef = useRef();
   const daysOfYear = getDaysYear()
 
-  const [inteFree, setInteFree] = useState(0)
   const [limit, setLimit] = useState(0)
   const [rate, setRate] = useState(0)
   const [days, setDays] = useState(0)
@@ -27,7 +34,6 @@ const App = () => {
   const [errorMsg, setErrorMsg] = useState([])
 
   const [disabledBtn, setDisabledBtn] = useState(false)
-
   const [charge, setCharge] = useState(0)
 
   let errorObject = {
@@ -35,6 +41,13 @@ const App = () => {
     msg: ""
   };
   
+  const currentIcon = (key) => {
+    if(key.includes("day")) return icon.text
+    if(key.includes("rate")) return icon.percentage
+
+    return icon.dollar
+  }
+
   // Set focus when component loads
   useEffect(() => {
     limitRef.current.focus();
@@ -44,26 +57,15 @@ const App = () => {
   useEffect(() => { 
     isEmpty(errorMsg) ? setDisabledBtn(false) : setDisabledBtn(true)
   }, [errorMsg])
+  
+  // Form Validation
+  const validation = (currentValue, type) => {
+    // Exist check
+    const isExist =  errorMsg.find(item => item.title === type)
+    const validationResult = formValidation(currentValue, type, accountBalance, limit)
 
-  // Set Interest Free
-  const handleSelected = (e) => {
-    setInteFree(e.target.name)
-  }
-
-  const handleInputOnChanges = (e) => { 
-
-    // Remove all spaces from input value
-    const currentValue = removeSpace(e.target.value)
-    const type = e.target.name
-
-    // Form Validation
-    const validationResult = formValidation(currentValue, type, accountBalance)
-
-    // Update error state
     errorObject.title = type
     errorObject.msg = validationResult
-
-    const isExist =  errorMsg.find(item => item.title === type)
     
     if(isExist) {
       setErrorMsg(errorMsg.map(
@@ -76,8 +78,17 @@ const App = () => {
               )
             )
     }else {
-      !isUndefined(validationResult) && setErrorMsg([...errorMsg, errorObject])
+      !isUndefined(validationResult) && 
+        setErrorMsg([...errorMsg, errorObject])
     }
+  }
+
+  const handleInputOnChanges = (e) => { 
+    // Remove all spaces from input value
+    const currentValue = removeSpace(e.target.value)
+    const type = e.target.name
+
+    validation(currentValue, type)
     
     // Inputs change
     switch(type) {
@@ -89,34 +100,30 @@ const App = () => {
         setDays(currentValue)
       case 'Account balance':
         setAccountBalance(currentValue)
-      case 'Total Spending':
+      case 'Total spending':
         setTotalSpending(currentValue)
       break
     }
+    console.info('currentValue', currentValue);
+    
   }
 
-  // debounced the input on change event
+  // Debounced the input on change event
   const debouncedResult = debounce((e, value) => {
     handleInputOnChanges(e, value)
   }, 300)
 
   // Set onClick function 
   // Formula =  A/N * R/P (https://efinancemanagement.com/working-capital-financing/overdraft-interest)
-  // A = Amount Overdrawn
-  // N = Number of Days in a billing period
-  // R = Annual interest rate
-  // P = number of periods per year
-
-  const handleOnCalculating = async (e) => {
+  const handleOnCalculating = (e) => {
     e.preventDefault();
 
     const amountOverdrawn = totalSpending - accountBalance;
     const annualRate = rate / 100;
     
-    const numberOfPeriods = daysOfYear / days;
+    const numberOfPeriods = daysOfYear * 1 / days;
     const result = ((amountOverdrawn / days) * (annualRate/ numberOfPeriods)).toFixed(4)
     // TODO: interestFree
-    // const result = amountOverdrawn <= inteFree ? "Remember pay it" : (amountOverdrawn / days) * (rate/100 / getDaysYear())
     setCharge(result)  
   }
 
@@ -130,45 +137,39 @@ const App = () => {
               </h6>
             </div>
             <form className="space-y-5">
-                {/* {
-                  interestFree.map((item) => {
-                    const { key, value } = item
-                    return (
-                      <Select 
-                        key={key} 
-                        type={key} 
-                        currentValue={value} 
-                        selected={inteFree}
-                        handleOnChange={handleSelected} 
-                      />)
-                  })
-                } */}
-                {
-                  inputInfo.map((item) => {
-                    const { name, key, min, max } = item
-                    
-                    return (
-                     <Input 
-                        key={key}
-                        title={name}
-                        min={min}
-                        max={max}
-                        errorMsg={errorMsg}
-                        currentRef={key === "limit" ? limitRef : null}
-                        handleOnChange={(e, value)=>debouncedResult(e, value)} 
-                      />
-                    )
-                  })
-                }
-                <button type="submit" className={"btn" + " " + `${disabledBtn ? "btn--disabled" : ""}`} onClick={handleOnCalculating}>
-                    Calculate
-                </button>
-            </form>
-            <div>
               {
-                 charge > 0 && <p className="btn bg-blue-200 text-blue-700 text-center">{charge}</p> 
+                inputInfo.map((item) => {
+                  const { name, key, min, max } = item
+                  
+                  return (
+                    <Input 
+                      key={key}
+                      title={name}
+                      min={min}
+                      max={max}
+                      icon={currentIcon(key)}
+                      errorMsg={errorMsg}
+                      currentRef={key === "limit" ? limitRef : null}
+                      isRequired={true}
+                      handleOnChange={(e, value)=>debouncedResult(e, value)} 
+                    />
+                  )
+                })
               }
-            </div>
+              {
+                charge > 0 && 
+                  <p className="btn bg-blue-200 text-blue-700 text-center">
+                    interest charged : ${charge}
+                  </p> 
+              }
+              <button 
+                type="submit" 
+                className={"btn" + " " + `${disabledBtn ? "btn--disabled" : ""}`} 
+                onClick={handleOnCalculating}
+              >
+                Calculate
+              </button>
+            </form>
         </div>
       </div>
     </div>
