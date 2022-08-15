@@ -39,7 +39,7 @@ export const interestFree = [
     value: 0
   }, 
   {
-    key: "primey",
+    key: "premier",
     value: 500
   }
 ]

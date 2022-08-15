@@ -1,6 +1,4 @@
-import { useEffect } from "react";
-import { useRef } from "react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   debounce, 
   isEmpty, 
@@ -8,45 +6,45 @@ import {
 } from "lodash";
 
 import Input from "./components/Input";
-import Select from "./components/Select";
 
 import { 
   inputInfo, 
-  icon, 
-  interestFree 
-} from './utils/_constant';
-import { getDaysYear } from "./utils/getDaysYear";
-import { removeSpace } from "./utils/validation";
-
-import formValidation from "./utils/formValidation";
+  icon,
+  interestFree,
+  removeSpace, 
+  getDaysYear,
+  formValidation } from "./utils";
 
 const App = () => {
-  const limitRef = useRef();
-  const daysOfYear = getDaysYear()
-
-  const [limit, setLimit] = useState(0)
-  const [rate, setRate] = useState(0)
-  const [days, setDays] = useState(0)
-
-  const [accountBalance, setAccountBalance] = useState(0)
-  const [totalSpending, setTotalSpending] = useState(0)
+  const [formData, setFormData] = useState({
+    limit: 0,
+    rate: 0,
+    days: 0,
+    balance: 0,
+    spending: 0
+  })
 
   const [errorMsg, setErrorMsg] = useState([])
-
   const [disabledBtn, setDisabledBtn] = useState(false)
-  const [charge, setCharge] = useState(0)
+  const [charge, setCharge] = useState()
 
-  let errorObject = {
-    title: "",
-    msg: ""
-  };
+  const limitRef = useRef()
+  const daysOfYear = getDaysYear()
   
+  const currentInterestFree = interestFree.find(
+    item => item.key === "premier"
+  ).value
+
   const currentIcon = (key) => {
     if(key.includes("day")) return icon.text
     if(key.includes("rate")) return icon.percentage
-
     return icon.dollar
   }
+ 
+  let errorObject = {
+    type: "",
+    msg: ""
+  };
 
   // Set focus when component loads
   useEffect(() => {
@@ -57,24 +55,32 @@ const App = () => {
   useEffect(() => { 
     isEmpty(errorMsg) ? setDisabledBtn(false) : setDisabledBtn(true)
   }, [errorMsg])
-  
+
+  // Set the charge with formData updated
+  useEffect(() => {
+    setCharge()
+  },[formData])
   // Form Validation
   const validation = (currentValue, type) => {
-    // Exist check
-    const isExist =  errorMsg.find(item => item.title === type)
-    const validationResult = formValidation(currentValue, type, accountBalance, limit)
+    const { balance, limit } = formData;
 
-    errorObject.title = type
+    // Exist check
+    const isExist =  errorMsg.find(item => item.type === type)
+    const validationResult = formValidation(currentValue, type, balance, limit)
+
+    errorObject.type = type
     errorObject.msg = validationResult
     
     if(isExist) {
       setErrorMsg(errorMsg.map(
         item => 
-          item.title === type ?
-           {...item, 
-              msg :formValidation(currentValue, type)} : 
+          item.type === type ?
+            {
+              ...item, 
+              msg : validationResult
+            } : 
               item).filter(
-                item => item.msg != undefined 
+                item => item.msg !== undefined 
               )
             )
     }else {
@@ -82,30 +88,17 @@ const App = () => {
         setErrorMsg([...errorMsg, errorObject])
     }
   }
-
+  
   const handleInputOnChanges = (e) => { 
     // Remove all spaces from input value
     const currentValue = removeSpace(e.target.value)
     const type = e.target.name
-
+    
     validation(currentValue, type)
-    
-    // Inputs change
-    switch(type) {
-      case 'Arranged overdraft limit':
-        setLimit(currentValue)
-      case 'Overdraft interest rate':
-        setRate(currentValue)
-      case 'Number of days overdrawn':
-        setDays(currentValue)
-      case 'Account balance':
-        setAccountBalance(currentValue)
-      case 'Total spending':
-        setTotalSpending(currentValue)
-      break
-    }
-    console.info('currentValue', currentValue);
-    
+    setFormData((prev) => ({
+      ...prev,
+      [type]: currentValue
+    }))
   }
 
   // Debounced the input on change event
@@ -113,18 +106,23 @@ const App = () => {
     handleInputOnChanges(e, value)
   }, 300)
 
-  // Set onClick function 
-  // Formula =  A/N * R/P (https://efinancemanagement.com/working-capital-financing/overdraft-interest)
+  // Formula: A/N * R/P (https://efinancemanagement.com/working-capital-financing/overdraft-interest)
   const handleOnCalculating = (e) => {
-    e.preventDefault();
+    e.preventDefault(); 
 
-    const amountOverdrawn = totalSpending - accountBalance;
-    const annualRate = rate / 100;
-    
-    const numberOfPeriods = daysOfYear * 1 / days;
-    const result = ((amountOverdrawn / days) * (annualRate/ numberOfPeriods)).toFixed(4)
-    // TODO: interestFree
-    setCharge(result)  
+    const { spending, balance, days, rate } = formData;
+
+    const amountOverdrawn = spending - balance;
+
+    if(amountOverdrawn < currentInterestFree ) {
+      setCharge(0)  
+    }else {
+      const annualRate = rate / 100;
+      const numberOfPeriods = daysOfYear * 1 / days;
+      const result = (((amountOverdrawn -  currentInterestFree * 1) / days) * (annualRate/ numberOfPeriods)).toFixed(4)
+   
+      setCharge(result)       
+    }
   }
 
   return (
@@ -137,13 +135,15 @@ const App = () => {
               </h6>
             </div>
             <form className="space-y-5">
+              <p>Interest Free: ${currentInterestFree}</p>
               {
                 inputInfo.map((item) => {
                   const { name, key, min, max } = item
-                  
+
                   return (
                     <Input 
                       key={key}
+                      name={key}
                       title={name}
                       min={min}
                       max={max}
@@ -151,24 +151,24 @@ const App = () => {
                       errorMsg={errorMsg}
                       currentRef={key === "limit" ? limitRef : null}
                       isRequired={true}
-                      handleOnChange={(e, value)=>debouncedResult(e, value)} 
+                      handleOnChange={(key, value)=>debouncedResult(key, value)} 
                     />
                   )
                 })
               }
-              {
-                charge > 0 && 
-                  <p className="btn bg-blue-200 text-blue-700 text-center">
-                    interest charged : ${charge}
-                  </p> 
-              }
               <button 
                 type="submit" 
-                className={"btn" + " " + `${disabledBtn ? "btn--disabled" : ""}`} 
+                className={disabledBtn ? "btn--disabled" : "btn"} 
                 onClick={handleOnCalculating}
               >
                 Calculate
               </button>
+              {
+                charge >= 0 &&
+                (<p className="btn bg-blue-200 text-blue-700 text-center">
+                  Interest charged : ${charge}
+                </p>)
+              }
             </form>
         </div>
       </div>

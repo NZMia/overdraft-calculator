@@ -10,8 +10,7 @@ const Select = ({type, currentValue, selected, handleOnChange}) => {
         name={currentValue} 
         onChange={handleOnChange} s/>
       <label className="form-check-label inline-block text-gray-800" htmlFor={type}>
-        
-      Interest Free: $ {currentValue}
+        Interest Free: $ {currentValue}
       </label>
     </div>
   )

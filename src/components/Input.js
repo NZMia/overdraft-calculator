@@ -2,25 +2,27 @@ import React from "react";
 import { isEmpty } from "lodash";
 
 const Input = ({ 
-  title, 
+  name, 
+  title,
   currentRef=null, 
   handleOnChange, 
   min, 
   max,
   errorMsg,
   icon,
-  isRequired }) => {
+  isRequired,
+  type }) => {
   
-  const currentErrormsg = errorMsg.find(msg => msg.title === title)
+  const currentErrormsg = errorMsg.find(msg => msg.type === name)
   const { sign, position } = icon
   return (
     <div className="relative w-full">
-        <p className="block text-sm font-medium text-slate-700">
+        <label htmlFor={name} className="block text-sm font-medium text-slate-700">
           {title} 
           {
             isRequired && <span className="text-pink-500"> * </span>
           }
-        </p>
+        </label>
         {
           !!min && !!max && <span className="text-sm italic text-slate-400">Enter a value between {min} and {max}</span>
         }
@@ -31,7 +33,8 @@ const Input = ({
           <input 
             className="input" 
             ref={currentRef} 
-            name={title}
+            name={name}
+            type={type}
             onChange={handleOnChange}
             required={isRequired}
             />

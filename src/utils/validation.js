@@ -13,7 +13,7 @@ export const isEmptyString = (value) => {
 	return false
 }
 
-export const isNumberLessThan10000 = (value) => {
+export const isNumberLessThan5000 = (value) => {
   return (/^(?:[1-9]|\d{2,3}|[1-4]\d{3}|5000)$/.test(value))
 }
 
@@ -27,4 +27,8 @@ export const daysCheck = (value) => {
 
 export const isOverrun = (value, allowedValue) => {
   return value > allowedValue ? true : false
+}
+
+export const isBlank = (value) => {
+  return (/^\s*$/.test(value))
 }
