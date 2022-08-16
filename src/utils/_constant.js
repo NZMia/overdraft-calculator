@@ -44,17 +44,20 @@ export const interestFree = [
   }
 ]
 
-export const icon = {
-  dollar: {
+export const icon = [
+  {
+    name: "dollar",
     sign: "$",
     position: "left"
   },
-  percentage: {
+ {
+    name: "percentage",
     sign: "%",
     position: "right"
   },
-  text: {
+  {
+    name: "text",
     sign: "days",
     position: "right"
   }
-}
+]

@@ -9,7 +9,6 @@ import Input from "./components/Input";
 
 import { 
   inputInfo, 
-  icon,
   interestFree,
   removeSpace, 
   getDaysYear,
@@ -35,12 +34,6 @@ const App = () => {
     item => item.key === "premier"
   ).value
 
-  const currentIcon = (key) => {
-    if(key.includes("day")) return icon.text
-    if(key.includes("rate")) return icon.percentage
-    return icon.dollar
-  }
- 
   let errorObject = {
     type: "",
     msg: ""
@@ -60,6 +53,7 @@ const App = () => {
   useEffect(() => {
     setCharge()
   },[formData])
+  
   // Form Validation
   const validation = (currentValue, type) => {
     const { balance, limit } = formData;
@@ -147,7 +141,6 @@ const App = () => {
                       title={name}
                       min={min}
                       max={max}
-                      icon={currentIcon(key)}
                       errorMsg={errorMsg}
                       currentRef={key === "limit" ? limitRef : null}
                       isRequired={true}

@@ -1,6 +1,15 @@
 import React from "react";
 import { isEmpty } from "lodash";
 
+import { icon } from "../utils";
+
+const Icon = (name) => icon.filter(item => {
+  if(name.includes("days")) return item.name === "text"
+  if(name.includes("rate")) return item.name === "percentage"
+
+  return item.name === "dollar"
+})
+
 const Input = ({ 
   name, 
   title,
@@ -9,15 +18,20 @@ const Input = ({
   min, 
   max,
   errorMsg,
-  icon,
-  isRequired,
-  type }) => {
+  isRequired }) => {
   
   const currentErrormsg = errorMsg.find(msg => msg.type === name)
-  const { sign, position } = icon
+  
+  console.info('errorMsg', errorMsg);
+  
+  const ariaLabel=`input-${name}`;
+  
+  const icon =  Icon(name)
+  const { sign, position } = icon[0]
+
   return (
     <div className="relative w-full">
-        <label htmlFor={name} className="block text-sm font-medium text-slate-700">
+        <label htmlFor={name} className="block text-sm font-medium text-slate-700" id={ariaLabel}>
           {title} 
           {
             isRequired && <span className="text-pink-500"> * </span>
@@ -34,7 +48,7 @@ const Input = ({
             className="input" 
             ref={currentRef} 
             name={name}
-            type={type}
+            aria-label={ariaLabel}
             onChange={handleOnChange}
             required={isRequired}
             />
