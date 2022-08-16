@@ -153,6 +153,7 @@ const App = () => {
                 type="submit" 
                 className={disabledBtn ? "btn--disabled" : "btn"} 
                 onClick={handleOnCalculating}
+                disabled={disabledBtn ? true : false}
               >
                 Calculate
               </button>
