@@ -22,8 +22,6 @@ const Input = ({
   
   const currentErrormsg = errorMsg.find(msg => msg.type === name)
   
-  console.info('errorMsg', errorMsg);
-  
   const ariaLabel=`input-${name}`;
   
   const icon =  Icon(name)
