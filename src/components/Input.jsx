@@ -14,12 +14,13 @@ const Input = ({
   name, 
   title,
   currentRef=null, 
-  handleOnChange, 
+  handleOnChange,
   min, 
   max,
   errorMsg,
-  isRequired }) => {
-  
+  isRequired
+}) => {
+
   const currentErrormsg = errorMsg.find(msg => msg.type === name)
   
   const ariaLabel=`input-${name}`;

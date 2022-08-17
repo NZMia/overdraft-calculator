@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { 
   debounce, 
-  isEmpty, 
-  isUndefined
+  isEmpty
 } from "lodash";
 
 import Input from "./components/Input";
@@ -54,13 +53,46 @@ const App = () => {
     setCharge()
   },[formData])
   
+  // Reset Error message of Total spending field when limit and balanc change 
+  useEffect(() => {
+    const { limit, balance, spending } = formData;
+    const allowedOverdrawn = limit*1 + balance*1;
+
+    // Reset error message when limit or balance changed
+    if(limit > 0 || balance > 0) {
+      validation("spending", null ,`Cannot spend over than ${allowedOverdrawn}`)
+    }
+    
+    // Rmove the error msg if speding less than allowedOverdrawn
+    if(spending <= allowedOverdrawn) {
+     
+      // TODO: DUPLICATED CODE
+      setErrorMsg(errorMsg.map(
+        item => 
+          item.type === "spending" ?
+            {
+              ...item, 
+              msg : ""
+            } 
+            : item
+            ).filter( 
+              item => 
+                !isEmpty(item.msg)
+              )
+            )
+    }
+  }, [formData])
+
   // Form Validation
-  const validation = (currentValue, type) => {
+  const validation = (type, currentValue=null, customMsg=null) => {
     const { balance, limit } = formData;
 
     // Exist check
     const isExist =  errorMsg.find(item => item.type === type)
-    const validationResult = formValidation(currentValue, type, balance, limit)
+    const validationResult = 
+      !!currentValue ? 
+        (formValidation(currentValue, type, balance, limit) || "") 
+        : customMsg
 
     errorObject.type = type
     errorObject.msg = validationResult
@@ -72,23 +104,25 @@ const App = () => {
             {
               ...item, 
               msg : validationResult
-            } : 
-              item).filter(
-                item => item.msg !== undefined 
+            } 
+            : item
+            ).filter( 
+              item => 
+                !isEmpty(item.msg)
               )
             )
     }else {
-      !isUndefined(validationResult) && 
+      !isEmpty(validationResult) && 
         setErrorMsg([...errorMsg, errorObject])
     }
   }
-  
+
   const handleInputOnChanges = (e) => { 
     // Remove all spaces from input value
     const currentValue = removeSpace(e.target.value)
     const type = e.target.name
     
-    validation(currentValue, type)
+    validation(type, currentValue)
     setFormData((prev) => ({
       ...prev,
       [type]: currentValue
@@ -141,6 +175,7 @@ const App = () => {
                       title={name}
                       min={min}
                       max={max}
+                      value={formData[key]}
                       errorMsg={errorMsg}
                       currentRef={key === "limit" ? limitRef : null}
                       isRequired={true}
