@@ -57,5 +57,5 @@ Tailwindcss 3.1.8
 #### TODO
 
 - [ ] Refactor: Typescript 
-- [ ] Tidy up: Vaildation
+- [x] Tidy up: Vaildation
 - [ ] Unit Test
