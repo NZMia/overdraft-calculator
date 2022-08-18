@@ -1,4 +1,22 @@
-export const inputInfo = [
+export interface InputInfo {
+  key: string,
+  name: string,
+  min: number,
+  max?: number
+}
+
+export interface InterestFree {
+  key: string,
+  value: number
+}
+
+export interface Icon {
+  name: string,
+  sign: string,
+  position: string
+}
+
+export const inputInfo: InputInfo[] = [
   {
     key: "limit",
     name: "Arranged overdraft limit",
@@ -19,7 +37,6 @@ export const inputInfo = [
     min: 1,
     max: 31,
   },
-
   {
     key: "balance",
     name: "Account balance",
@@ -33,7 +50,7 @@ export const inputInfo = [
   },
 ]
 
-export const interestFree = [
+export const interestFree: InterestFree[] = [
   {
     key: "student",
     value: 0
@@ -44,7 +61,7 @@ export const interestFree = [
   }
 ]
 
-export const icon = [
+export const icon: Icon[] = [
   {
     name: "dollar",
     sign: "$",

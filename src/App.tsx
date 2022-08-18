@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { 
   debounce, 
-  isEmpty, 
-  isUndefined
+  isEmpty
 } from "lodash";
 
 import Input from "./components/Input";
@@ -13,9 +12,22 @@ import {
   removeSpace, 
   getDaysYear,
   formValidation } from "./utils";
+ 
+type FormDataState = {
+  limit: number,
+  rate: number,
+  days: number,
+  balance: number,
+  spending: number
+}
+
+type ErrorMsg = {
+  type: string,
+  msg: string | null
+}
 
 const App = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataState>({
     limit: 0,
     rate: 0,
     days: 0,
@@ -23,25 +35,22 @@ const App = () => {
     spending: 0
   })
 
-  const [errorMsg, setErrorMsg] = useState([])
+  const [errorMsg, setErrorMsg] = useState<ErrorMsg[]>([])
   const [disabledBtn, setDisabledBtn] = useState(false)
-  const [charge, setCharge] = useState()
+  const [charge, setCharge] = useState(null)
 
-  const limitRef = useRef()
+  const limitRef = useRef<HTMLInputElement | null>(null)
   const daysOfYear = getDaysYear()
   
+  // TODO: Will replaced by Select component
+  // Add ! to tell the Typescript compiler that currentInterestFree will never be undefined
   const currentInterestFree = interestFree.find(
     item => item.key === "premier"
-  ).value
-
-  let errorObject = {
-    type: "",
-    msg: ""
-  };
+  )!.value
 
   // Set focus when component loads
   useEffect(() => {
-    limitRef.current.focus();
+    limitRef?.current?.focus();
   }, [])
   
   // Set Button state depends on the error state
@@ -51,16 +60,56 @@ const App = () => {
 
   // Set the charge with formData updated
   useEffect(() => {
-    setCharge()
+    setCharge(null)
   },[formData])
   
+  // Reset Error message of Total spending field when limit and balanc change 
+  useEffect(() => {
+
+    const { limit, balance, spending } = formData;
+    const allowedOverdrawn = limit + balance;
+
+    // Reset error message when limit or balance changed
+    if(limit > 0 || balance > 0) {
+      validation("spending", null ,`Cannot spend over than ${allowedOverdrawn}`)
+    }
+    
+    // Rmove the error msg if speding less than allowedOverdrawn
+    if(spending <= allowedOverdrawn) {
+     
+      // TODO: DUPLICATED CODE
+      setErrorMsg(errorMsg.map(
+        item => 
+          item.type === "spending" ?
+            {
+              ...item, 
+              msg : ""
+            } 
+            : item
+            ).filter( 
+              item => 
+                !isEmpty(item.msg)
+              )
+            )
+    }
+  }, [formData])
+
   // Form Validation
-  const validation = (currentValue, type) => {
+  const validation = (
+    type:string, 
+    currentValue:string | number | null , 
+    customMsg: string | null, 
+    errorObject: ErrorMsg 
+  ) => {
+
     const { balance, limit } = formData;
 
     // Exist check
-    const isExist =  errorMsg.find(item => item.type === type)
-    const validationResult = formValidation(currentValue, type, balance, limit)
+    const isExist =  errorMsg.find(item => item?.type === type)
+    const validationResult = 
+      !!currentValue ? 
+        (formValidation(currentValue, type, balance, limit) || "") 
+        : customMsg
 
     errorObject.type = type
     errorObject.msg = validationResult
@@ -72,23 +121,25 @@ const App = () => {
             {
               ...item, 
               msg : validationResult
-            } : 
-              item).filter(
-                item => item.msg !== undefined 
+            } 
+            : item
+            ).filter( 
+              item => 
+                !isEmpty(item.msg)
               )
             )
     }else {
-      !isUndefined(validationResult) && 
+      !isEmpty(validationResult) && 
         setErrorMsg([...errorMsg, errorObject])
     }
   }
-  
+
   const handleInputOnChanges = (e) => { 
     // Remove all spaces from input value
     const currentValue = removeSpace(e.target.value)
     const type = e.target.name
     
-    validation(currentValue, type)
+    validation(type, currentValue, null )
     setFormData((prev) => ({
       ...prev,
       [type]: currentValue
@@ -141,6 +192,7 @@ const App = () => {
                       title={name}
                       min={min}
                       max={max}
+                      value={formData[key]}
                       errorMsg={errorMsg}
                       currentRef={key === "limit" ? limitRef : null}
                       isRequired={true}

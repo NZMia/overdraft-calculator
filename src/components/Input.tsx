@@ -3,14 +3,25 @@ import { isEmpty } from "lodash";
 
 import { icon } from "../utils";
 
-const Icon = (name) => icon.filter(item => {
+interface IInput {
+  name: string,
+  title: string,
+  currentRef?: string, 
+  handleOnChange: (e: React.MouseEvent) => void, 
+  min: number, 
+  max: number,
+  errorMsg: object[],
+  isRequired: boolean
+}
+
+const Icon= (name: string) => icon.filter(item => {
   if(name.includes("days")) return item.name === "text"
   if(name.includes("rate")) return item.name === "percentage"
 
   return item.name === "dollar"
 })
 
-const Input = ({ 
+const Input: React.FC<IInput> = ({ 
   name, 
   title,
   currentRef=null, 
@@ -29,7 +40,11 @@ const Input = ({
 
   return (
     <div className="relative w-full">
-        <label htmlFor={name} className="block text-sm font-medium text-slate-700" id={ariaLabel}>
+        <label 
+          htmlFor={name} 
+          className="block text-sm font-medium text-slate-700" 
+          id={ariaLabel}
+        >
           {title} 
           {
             isRequired && <span className="text-pink-500"> * </span>
@@ -47,7 +62,7 @@ const Input = ({
             ref={currentRef} 
             name={name}
             aria-label={ariaLabel}
-            onChange={handleOnChange}
+            onChange={() => handleOnChange}
             required={isRequired}
             />
             {

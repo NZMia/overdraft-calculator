@@ -6,7 +6,13 @@ import {
   isOverrun,
   isBlank } from "./validation";
 
-export const formValidation = (value, type, balance=null, limit=null) => {
+export const formValidation = (
+  value: string | number, 
+  type: string, 
+  balance?: number, 
+  limit?: number
+) => {
+
   if(!isNumber(value)) return "Positive whole numbers only";
   if(isBlank(value)) return "Please fill in this filed";
 
@@ -23,7 +29,8 @@ export const formValidation = (value, type, balance=null, limit=null) => {
   };
  
   if(type==="spending") {
-    const allowedOverdrawn = balance*1 + limit*1; 
+
+    const allowedOverdrawn = !!balance && !!limit && balance + limit; 
     if(isOverrun(value, allowedOverdrawn)) return `Cannot spend over than ${allowedOverdrawn}`
   }
 }
