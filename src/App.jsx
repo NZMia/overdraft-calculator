@@ -33,7 +33,7 @@ const App = () => {
     item => item.key === "premier"
   ).value
 
-  let errorObject = {
+  const errorObject = {
     type: "",
     msg: ""
   };
@@ -121,7 +121,7 @@ const App = () => {
     // Remove all spaces from input value
     const currentValue = removeSpace(e.target.value)
     const type = e.target.name
-    
+
     validation(type, currentValue)
     setFormData((prev) => ({
       ...prev,
