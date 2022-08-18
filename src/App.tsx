@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, MutableRefObject, RefObject } from "react";
 import { 
   debounce, 
   isEmpty
@@ -23,7 +23,7 @@ type FormDataState = {
 
 type ErrorMsg = {
   type: string,
-  msg: string | null
+  msg: string
 }
 
 const App = () => {
@@ -37,9 +37,9 @@ const App = () => {
 
   const [errorMsg, setErrorMsg] = useState<ErrorMsg[]>([])
   const [disabledBtn, setDisabledBtn] = useState(false)
-  const [charge, setCharge] = useState(null)
+  const [charge, setCharge] = useState<number | string | null>(null)
 
-  const limitRef = useRef<HTMLInputElement | null>(null)
+  const limitRef = useRef<RefObject<typeof Input>>()
   const daysOfYear = getDaysYear()
   
   // TODO: Will replaced by Select component
@@ -71,7 +71,7 @@ const App = () => {
 
     // Reset error message when limit or balance changed
     if(limit > 0 || balance > 0) {
-      validation("spending", null ,`Cannot spend over than ${allowedOverdrawn}`)
+      validation("spending", undefined, undefined,`Cannot spend over than ${allowedOverdrawn}`)
     }
     
     // Rmove the error msg if speding less than allowedOverdrawn
@@ -97,30 +97,30 @@ const App = () => {
   // Form Validation
   const validation = (
     type:string, 
-    currentValue:string | number | null , 
-    customMsg: string | null, 
-    errorObject: ErrorMsg 
+    errorObject: ErrorMsg | undefined,
+    currentValue?: number, 
+    customMsg?: string, 
   ) => {
-
+   
     const { balance, limit } = formData;
 
     // Exist check
     const isExist =  errorMsg.find(item => item?.type === type)
-    const validationResult = 
-      !!currentValue ? 
-        (formValidation(currentValue, type, balance, limit) || "") 
-        : customMsg
 
-    errorObject.type = type
-    errorObject.msg = validationResult
-    
+    errorObject.type = type;
+
+    if(currentValue)
+      errorObject.msg = (formValidation(currentValue, type, balance, limit) || "") 
+    if(customMsg)
+      errorObject.msg = customMsg
+
     if(isExist) {
       setErrorMsg(errorMsg.map(
         item => 
           item.type === type ?
             {
               ...item, 
-              msg : validationResult
+              msg : errorObject.msg
             } 
             : item
             ).filter( 
@@ -129,17 +129,23 @@ const App = () => {
               )
             )
     }else {
-      !isEmpty(validationResult) && 
+      !isEmpty(errorObject.msg) && 
         setErrorMsg([...errorMsg, errorObject])
     }
   }
 
-  const handleInputOnChanges = (e) => { 
+  console.log('errorMsg', errorMsg)
+  const handleInputOnChanges = (e: React.MouseEvent<HTMLInputElement>): void => { 
     // Remove all spaces from input value
-    const currentValue = removeSpace(e.target.value)
-    const type = e.target.name
+    // string to number: new feature "+"
+    const currentValue = +removeSpace((e.target as HTMLInputElement).value)
+
+    const type =(e.target as HTMLInputElement).name
     
-    validation(type, currentValue, null )
+    if(currentValue) {
+      validation(type,undefined,currentValue)
+    }
+
     setFormData((prev) => ({
       ...prev,
       [type]: currentValue
@@ -147,12 +153,12 @@ const App = () => {
   }
 
   // Debounced the input on change event
-  const debouncedResult = debounce((e, value) => {
-    handleInputOnChanges(e, value)
+  const debouncedResult = debounce((e) => {
+    handleInputOnChanges(e)
   }, 300)
 
   // Formula: A/N * R/P (https://efinancemanagement.com/working-capital-financing/overdraft-interest)
-  const handleOnCalculating = (e) => {
+  const handleOnCalculating = (e: React.MouseEvent<HTMLButtonElement>): void => {
     e.preventDefault(); 
 
     const { spending, balance, days, rate } = formData;
@@ -184,6 +190,8 @@ const App = () => {
               {
                 inputInfo.map((item) => {
                   const { name, key, min, max } = item
+                  const maximum: number | undefined = max
+                  const currentRef: HTMLInputElement | undefined = limitRef
 
                   return (
                     <Input 
@@ -191,12 +199,11 @@ const App = () => {
                       name={key}
                       title={name}
                       min={min}
-                      max={max}
-                      value={formData[key]}
+                      maximum={maximum}
                       errorMsg={errorMsg}
-                      currentRef={key === "limit" ? limitRef : null}
+                      currentRef={currentRef}
                       isRequired={true}
-                      handleOnChange={(key, value)=>debouncedResult(key, value)} 
+                      handleOnChange={debouncedResult} 
                     />
                   )
                 })
@@ -210,7 +217,7 @@ const App = () => {
                 Calculate
               </button>
               {
-                charge >= 0 &&
+                charge&&charge >= 0 &&
                 (<p className="btn bg-blue-200 text-blue-700 text-center">
                   Interest charged : ${charge}
                 </p>)

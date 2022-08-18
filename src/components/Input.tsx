@@ -1,17 +1,17 @@
-import React from "react";
+import React, { RefObject } from "react";
 import { isEmpty } from "lodash";
 
 import { icon } from "../utils";
 
-interface IInput {
+export type IInput =  {
   name: string,
   title: string,
-  currentRef?: string, 
   handleOnChange: (e: React.MouseEvent) => void, 
   min: number, 
-  max: number,
+  maximum: number | undefined,
   errorMsg: object[],
-  isRequired: boolean
+  isRequired: boolean,
+  currentRef?: React.ForwardedRef<HTMLInputElement>
 }
 
 const Icon= (name: string) => icon.filter(item => {
@@ -21,15 +21,17 @@ const Icon= (name: string) => icon.filter(item => {
   return item.name === "dollar"
 })
 
-const Input: React.FC<IInput> = ({ 
-  name, 
-  title,
-  currentRef=null, 
-  handleOnChange, 
-  min, 
-  max,
-  errorMsg,
-  isRequired }) => {
+
+const Input = React.forwardRef<RefObject<HTMLElement>,IInput>(
+  ({
+    name, 
+    title,
+    handleOnChange,
+    min,
+    maximum,
+    errorMsg,
+    isRequired 
+  }, currentRef) => {
   
   const currentErrormsg = errorMsg.find(msg => msg.type === name)
   
@@ -51,7 +53,7 @@ const Input: React.FC<IInput> = ({
           }
         </label>
         {
-          !!min && !!max && <span className="text-sm italic text-slate-400">Enter a value between {min} and {max}</span>
+          !!min && !!maximum && <span className="text-sm italic text-slate-400">Enter a value between {min} and {maximum}</span>
         }
         <div className="flex">
           {
@@ -74,6 +76,5 @@ const Input: React.FC<IInput> = ({
         }
     </div>
   )
-}
-
+})
 export default Input
