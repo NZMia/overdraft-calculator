@@ -26,7 +26,7 @@ export const daysCheck = (value) => {
 }
 
 export const isOverrun = (value, allowedValue) => {
-  return value > allowedValue ? true : false
+  return value > allowedValue 
 }
 
 export const isBlank = (value) => {
